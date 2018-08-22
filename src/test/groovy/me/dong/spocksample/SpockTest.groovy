@@ -27,15 +27,16 @@ class SpockTest extends Specification {
     expect
         test할 코드 실행 및 검증(when + then)
      */
+
     def "금액의 퍼센트 계산 결과값의 소수점을 버림을 검증한다"() {
 
-        given :
+        given:
         RoundingMode roundingMode = RoundingMode.DOWN
 
-        when :
+        when:
         def calculate = Calculator.calculate(10000L, 0.1f, roundingMode)
 
-        then :
+        then:
         calculate == 10L
     }
 
@@ -61,6 +62,7 @@ class SpockTest extends Specification {
      문제: 의미없는 중복 코드의 산재
      spock의 where를 사용하면 더 간단하게 표현할 수 있다
      */
+
     def "여러 금액의 퍼센트 계산 결과값의 소수점 버림을 검증한다"() {
 
         given:
@@ -81,6 +83,7 @@ class SpockTest extends Specification {
     thrown()
     작성한 흐름에 따라 예외를 확인할 수 있다
      */
+
     def "음수가 들어오면 예외가 발생하는지 알아보자"() {
         given:
         RoundingMode roundingMode = RoundingMode.DOWN
@@ -95,13 +98,20 @@ class SpockTest extends Specification {
 
     /*
     Mock
+
+    Mock 생성 2가지 방법
+    1. def mock = Mock(Calculator)
+    2. Calculator mockCalculator = Mock()
+
     mocking >> return value
     mocking >> { throw new NegativeNumberNotAllowException() }
      */
+
     def "주문금액의 소수점 버림을 검증한다"() {
         given:
         RoundingMode roundingMode = RoundingMode.DOWN
         def orderSheet = Mock(OrderSheet.class)
+//        OrderSheet orderSheet = Mock()
 
         when:
         long amount = orderSheet.getTotalOrderAmount()
@@ -111,4 +121,40 @@ class SpockTest extends Specification {
         10L == Calculator.calculate(amount, 0.1f, roundingMode)
     }
 
+    def "complex order는 조회가 2번된다"() {
+        given:
+        def mockOrderRepository = Mock(OrderRepository)
+        OrderService orderService = new OrderService(mockOrderRepository)
+        OrderSheet orderSheet = OrderSheet.builder()
+                .orderType("COMPLEX")
+                .totalOrderAmount(100L)
+                .build()
+        long id = 1L
+
+        when:
+        orderService.order(id, orderSheet)
+
+        then:
+//        2 * mockOrderRepository.findOne(id)  // 2번
+//        (2.._) * mockOrderRepository.findOne()  // 최소 2번
+//        (_..2) * mockOrderRepository.findOne()  // 최대 2번
+        2 * mockOrderRepository.findOne(_)  // any parameter
+    }
+
+    /*
+    spock vs JUnit
+    | Spock | JUnit |
+    |:------|:------|
+    | Specification | Test class |
+    | setup() | @Before |
+    | cleanup()| @After |
+    | setupSpec() | @BeforeClass |
+    | cleanupSpec() | @AfterClass |
+    | Feature | Test |
+    | Feature method | Test method |
+    | Data-driven feature | Theory |
+    | Condition | Assertion |
+    | Exception condition | @Test(expected=..) |
+    | Interaction | Mock expectation(e.g. in Mockito) |
+     */
 }
