@@ -6,7 +6,7 @@ import spock.lang.Unroll
 import java.math.RoundingMode
 
 /**
- * 참고 - http://jojoldu.tistory.com/228
+ * reference - http://jojoldu.tistory.com/228
  *
  * Created by ethan.kim on 2018. 8. 21..
  */
