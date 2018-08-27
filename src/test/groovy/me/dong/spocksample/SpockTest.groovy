@@ -1,5 +1,7 @@
 package me.dong.spocksample
 
+import spock.lang.FailsWith
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.math.RoundingMode
@@ -27,17 +29,26 @@ class SpockTest extends Specification {
     expect
         test할 코드 실행 및 검증(when + then)
      */
+    RoundingMode roundingMode
+
+    def setup() {
+        roundingMode = RoundingMode.DOWN
+    }
 
     def "금액의 퍼센트 계산 결과값의 소수점을 버림을 검증한다"() {
-
         given:
-        RoundingMode roundingMode = RoundingMode.DOWN
+        def amount = 10000L
+        def rate = 0.1f
 
         when:
-        def calculate = Calculator.calculate(10000L, 0.1f, roundingMode)
+        def calculate = Calculator.calculate(amount, rate, roundingMode)
 
         then:
         calculate == 10L
+    }
+
+    def cleanup() {
+        roundingMode = null
     }
 
     /*
@@ -141,6 +152,25 @@ class SpockTest extends Specification {
         2 * mockOrderRepository.findOne(_)  // any parameter
     }
 
+    def "complex order는 조회가 2번된다 with 사용"() {
+        given:
+        def mockOrderRepository = Mock(OrderRepository)
+        OrderService orderService = new OrderService(mockOrderRepository)
+        OrderSheet orderSheet = OrderSheet.builder()
+                .orderType("COMPLEX")
+                .totalOrderAmount(100L)
+                .build()
+        long id = 1L
+
+        when:
+        orderService.order(id, orderSheet)
+
+        then:
+        with(mockOrderRepository) {
+            2 * findOne(_)
+        }
+    }
+
     /*
     spock vs JUnit
     | Spock | JUnit |
@@ -157,4 +187,108 @@ class SpockTest extends Specification {
     | Exception condition | @Test(expected=..) |
     | Interaction | Mock expectation(e.g. in Mockito) |
      */
+
+    def "offered PC matches preferred configuration"() {
+        given:
+        def shop = new Shop()
+
+        when:
+        def pc = shop.buyPc()
+
+        then:
+        pc.vendor == "Sunny"
+        pc.clockRate >= 2333
+        pc.ram >= 4096
+        pc.os == "Linux"
+    }
+
+    def "offered PC matches preferred configuration1"() {
+        given:
+        def shop = new Shop()
+
+        when:
+        def pc = shop.buyPc()
+
+        then:
+        matchesPreferredConfiguration(pc)
+    }
+
+    void matchesPreferredConfiguration(pc) {
+        assert pc.vendor == "Sunny"
+        assert pc.clockRate >= 2333
+        assert pc.ram >= 4096
+        assert pc.os == "Linux"
+    }
+
+
+    def "offered PC matches preferred configuration2"() {
+        given:
+        def shop = new Shop()
+
+        when:
+        def pc = shop.buyPc()
+
+        then:
+        with(pc) {
+            vendor == "Sunny"
+            clockRate >= 2333
+            ram >= 406
+            os == "Linux"
+        }
+    }
+
+    @Ignore(value = "reason..")
+    def "back account credited 10"() {
+        given: "open a database connection"
+
+        and: "seed the customer table"  // block 내에서 개별로 설명 가능
+
+        and: "an empty bank account"
+
+        when: "the account is credited 10"
+
+        then: "the account's balance is 10"
+    }
+
+    @FailsWith(value = NullPointerException, reason = "reason..")
+    def "back account credited 1"() {
+        given:
+        def shop
+
+        when:
+        def pc = shop.buyPc()
+
+        then:
+        with(pc) {
+            vendor == "Sunny"
+            clockRate >= 2333
+            ram >= 406
+            os == "Linux"
+        }
+    }
+
+    class Shop {
+        static class Pc {
+
+            String vendor
+
+            int clockRate
+
+            int ram
+
+            String os
+        }
+
+
+        Pc buyPc() {
+            def pc = new Pc()
+
+            pc.vendor = "Sunny"
+            pc.clockRate = 2333
+            pc.ram = 4096
+            pc.os = "Linux"
+
+            return pc
+        }
+    }
 }

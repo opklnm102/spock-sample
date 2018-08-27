@@ -56,7 +56,7 @@ class FeeCalculateTypeTest extends Specification {
         3 | 9 | 9
     }
 
-    @Unroll  // 메소드 이름에 지정된 템플릿에 따라 테스트 결과를 보여준다
+//    @Unroll  // 메소드 이름에 지정된 템플릿에 따라 테스트 결과를 보여준다
     def "금액이 주어지면 원단위 반올림 결과가 반환된다 [금액: #amount, 결과: #result]"() {
         given:
         def feeCalculator = FeeCalculateType.WON_UNIT_CUT
